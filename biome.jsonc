@@ -8,7 +8,9 @@
   "files": {
     "ignoreUnknown": false,
     // components/ui is vendored shadcn output, not code this project edits by hand.
-    "includes": ["**", "!**/components/ui", "!**/bun.lock"]
+    // lib/database.types.ts is `supabase gen types` output — formatting it would
+    // make every regeneration a diff.
+    "includes": ["**", "!**/components/ui", "!**/bun.lock", "!**/lib/database.types.ts"]
   },
   "formatter": {
     "enabled": true,
