@@ -85,6 +85,45 @@ export async function createAssignment(draft: AssignmentDraft): Promise<void> {
   assertWritten(error, "add this assignment");
 }
 
+/**
+ * Insert many at once, for the Canvas import.
+ *
+ * Its own function rather than a loop over `createAssignment`: one round trip
+ * instead of N, and one `auth.getUser()` instead of N. More to the point, the
+ * import used to call `supabase.from("assignments").insert(...)` itself, which
+ * meant it had its own error handling, its own message wording, and took the
+ * user id from a prop rather than the session — so a session that expired while
+ * the preview dialog was open wrote rows under a stale id, or tried to.
+ *
+ * All or nothing: PostgREST rejects the whole array if any row violates a
+ * constraint. That is the right shape for an import the user has just reviewed
+ * and confirmed — a partial import leaves them with no way to tell which half
+ * landed.
+ */
+export async function createAssignments(drafts: AssignmentDraft[]): Promise<void> {
+  if (drafts.length === 0) return;
+
+  const supabase = createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new AssignmentWriteError("Your session has expired, so we could not import these. Sign in again.");
+  }
+
+  const { error } = await supabase.from("assignments").insert(
+    drafts.map((draft) => ({
+      ...draft,
+      user_id: user.id,
+      status: "pending" satisfies Status,
+    })),
+  );
+
+  assertWritten(error, drafts.length === 1 ? "import this assignment" : "import these assignments");
+}
+
 export async function updateAssignment(id: string, patch: Partial<AssignmentDraft>): Promise<void> {
   const supabase = createClient();
 

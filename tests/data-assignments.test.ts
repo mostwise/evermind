@@ -90,6 +90,7 @@ const REJECTED: PostgrestErrorLike = { code: "23514", message: 'violates check c
 /** Every write, so the failure behaviour can be asserted for all of them at once. */
 const WRITES: [string, () => Promise<void>][] = [
   ["createAssignment", () => data.createAssignment({ ...DRAFT })],
+  ["createAssignments", () => data.createAssignments([{ ...DRAFT }])],
   ["updateAssignment", () => data.updateAssignment("a-1", { title: "Renamed" })],
   ["setAssignmentStatus", () => data.setAssignmentStatus("a-1", "completed")],
   ["deleteAssignment", () => data.deleteAssignment("a-1")],
@@ -143,6 +144,52 @@ describe("createAssignment", () => {
     expect(error).toBeInstanceOf(data.AssignmentWriteError);
     expect(error.message).toMatch(/sign in again/i);
     expect(calls).toHaveLength(0);
+  });
+});
+
+/**
+ * The Canvas import used to insert rows itself, with its own error handling and
+ * `user_id` taken from a prop rather than the session. These pin the behaviour
+ * it inherited by moving onto the data layer.
+ */
+describe("createAssignments", () => {
+  const SECOND = { ...DRAFT, title: "Lab report", subject: "Chemistry" } as const;
+
+  test("sends every draft in one insert, each stamped like a single create", async () => {
+    await data.createAssignments([{ ...DRAFT }, { ...SECOND }]);
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0].op).toBe("insert");
+    expect(calls[0].payload).toEqual([
+      { ...DRAFT, user_id: "user-1", status: "pending" },
+      { ...SECOND, user_id: "user-1", status: "pending" },
+    ]);
+  });
+
+  // Nothing to write is not an error, and should not cost a round trip or a
+  // session lookup — the import calls this with whatever the user ticked.
+  test("does nothing at all when given an empty list", async () => {
+    await data.createAssignments([]);
+
+    expect(calls).toHaveLength(0);
+  });
+
+  test("does not insert at all when the session has gone", async () => {
+    sessionUser = null;
+
+    const error = await rejection(() => data.createAssignments([{ ...DRAFT }]));
+
+    expect(error).toBeInstanceOf(data.AssignmentWriteError);
+    expect(error.message).toMatch(/sign in again/i);
+    expect(calls).toHaveLength(0);
+  });
+
+  test("takes the user id from the session, not from the caller", async () => {
+    sessionUser = { id: "user-2" };
+
+    await data.createAssignments([{ ...DRAFT, user_id: "somebody-else" } as never]);
+
+    expect((calls[0].payload as { user_id: string }[])[0].user_id).toBe("user-2");
   });
 });
 
