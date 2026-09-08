@@ -1,0 +1,78 @@
+name: CLA
+
+# Asks a first-time contributor to confirm the copyright licence grant in
+# CONTRIBUTING.md, once, and records it against their GitHub account.
+#
+# It exists because Evermind is open core: this repository is GPL-3.0-or-later,
+# and a small paid edition is not published. A contribution that arrives under
+# the GPL alone cannot lawfully move into that edition without asking its author
+# first — which does not scale to contributors who have moved on. Asking up
+# front, in plain words, is the honest version of that.
+#
+# The grant is not required for every change. See CONTRIBUTING.md: docs, typos
+# and tests can be merged under the GPL alone, and a maintainer can say so on
+# the pull request rather than insisting.
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, closed, synchronize]
+
+# `pull_request_target` runs against the *base* repository and therefore has
+# access to secrets, which is why it is normally dangerous. It is safe here for
+# one reason: this workflow never checks out the pull request's code. It reads
+# comments and writes a signature file, and runs nothing the contributor wrote.
+# Do not add a checkout step to it.
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  statuses: write
+
+concurrency:
+  group: cla-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  cla:
+    name: Check the licence grant
+    runs-on: ubuntu-latest
+    steps:
+      - name: CLA Assistant
+        # Only react to the two comments that mean something, so an ordinary
+        # review conversation does not re-run this on every reply.
+        if: >
+          github.event_name == 'pull_request_target' ||
+          github.event.comment.body == 'recheck' ||
+          github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA'
+        uses: contributor-assistant/github-action@v2.6.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Signatures live on their own orphan branch rather than in the
+          # working tree, so agreeing to the CLA never shows up as a commit on
+          # a feature branch or in a release diff. The action creates it.
+          branch: cla-signatures
+          path-to-signatures: signatures/version1/cla.json
+
+          # The document people are agreeing to. Pinned to the default branch —
+          # if that is ever renamed from v2, change this too, or contributors
+          # will be asked to agree to a 404.
+          path-to-document: https://github.com/WickedSoftworks/evermind/blob/v2/CONTRIBUTING.md
+
+          custom-notsigned-prcomment: >
+            Thanks for the pull request. Before it can be merged, please read
+            [CONTRIBUTING.md](https://github.com/WickedSoftworks/evermind/blob/v2/CONTRIBUTING.md)
+            — in particular the section on the sign-off, which asks for a copyright
+            licence grant as well as a DCO, and explains why. Then comment the
+            sentence below on this pull request.
+
+
+            If you would rather not give that grant, say so here instead. Some
+            changes do not need it and can be merged under the GPL alone.
+          custom-pr-sign-comment: I have read the CLA Document and I hereby sign the CLA
+          custom-allsigned-prcomment: Licence grant on file — thank you.
+
+          # The maintainer, and bots, are not asked to sign their own terms.
+          allowlist: mostwise,dependabot[bot],renovate[bot],*[bot]
