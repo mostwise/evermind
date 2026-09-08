@@ -14,6 +14,10 @@ interface ClassComboboxProps {
   options: string[];
   id?: string;
   placeholder?: string;
+  /** Set when the field failed validation, so the trigger announces itself as invalid. */
+  invalid?: boolean;
+  /** Id of the element holding the validation message. */
+  describedBy?: string;
 }
 
 /**
@@ -29,6 +33,8 @@ export function ClassCombobox({
   options,
   id,
   placeholder = "Select or type a class",
+  invalid,
+  describedBy,
 }: ClassComboboxProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -55,7 +61,12 @@ export function ClassCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between font-normal"
+          // A combobox that opens a list of options has to say so, or a screen
+          // reader announces a button and stops there.
+          aria-haspopup="listbox"
+          aria-invalid={invalid || undefined}
+          aria-describedby={describedBy}
+          className={cn("w-full justify-between font-normal", invalid && "border-destructive")}
         >
           <span className={cn("truncate", !value && "text-muted-foreground")}>{value || placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
