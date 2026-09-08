@@ -25,6 +25,8 @@
  * and in a paid one, without knowing which it is in.
  */
 
+import type { ReactNode } from "react";
+
 /** What to render in place of a feature that exists but is not available to this user. */
 export interface CapabilityCta {
   /** Button or link text. Supplied by the commercial module, never hardcoded here. */
@@ -62,6 +64,18 @@ export interface ProCapabilities {
 /** A server route the optional module supplies the body of. */
 export type ProRequestHandler = (request: Request) => Promise<Response>;
 
+/**
+ * A block of page content the optional module supplies.
+ *
+ * This exists for the legal pages, and the reason is not tidiness — it is that
+ * the alternative is a false statement. A self-hosted instance that shipped a
+ * terms page describing something it does not sell, or a privacy notice naming
+ * a processor it does not use, would be making a claim about its own data
+ * handling that is simply untrue. Those paragraphs are only correct where the
+ * module is installed, so they live with the module.
+ */
+export type ProSection = () => ReactNode;
+
 export interface ProModule {
   /**
    * False in the stub. Consumers should not normally need this — prefer checking
@@ -87,6 +101,12 @@ export interface ProModule {
    * describing a business model.
    */
   readonly handlers?: Readonly<Record<string, ProRequestHandler | undefined>>;
+
+  /**
+   * Page content this edition adds, looked up by name. Absent in the stub, so
+   * the public pages render only what is true of a build without the module.
+   */
+  readonly sections?: Readonly<Record<string, ProSection | undefined>>;
 }
 
 /** Every capability off, with nothing to render in their place. */

@@ -1,7 +1,14 @@
 import proModule from "@pro";
-import { NO_CAPABILITIES, type ProCapabilities, type ProModule } from "./contract";
+import { NO_CAPABILITIES, type ProCapabilities, type ProModule, type ProSection as ProSectionType } from "./contract";
 
-export type { Capability, CapabilityCta, ProCapabilities, ProModule, ProRequestHandler } from "./contract";
+export type {
+  Capability,
+  CapabilityCta,
+  ProCapabilities,
+  ProModule,
+  ProRequestHandler,
+  ProSection,
+} from "./contract";
 export { NO_CAPABILITIES } from "./contract";
 
 /**
@@ -12,6 +19,19 @@ export { NO_CAPABILITIES } from "./contract";
  */
 export function proHandler(name: string): ((request: Request) => Promise<Response>) | undefined {
   return proModule.handlers?.[name];
+}
+
+/**
+ * A named block of page content from the optional module, or nothing.
+ *
+ * Used by the legal pages. Rendering nothing is the correct behaviour without
+ * the module, not a degraded one: the paragraphs it supplies describe a
+ * transaction and a processor that a build without it genuinely does not have.
+ *
+ * Server components only — this reaches the module, which reaches the database.
+ */
+export function proSection(name: string): ProSectionType | undefined {
+  return proModule.sections?.[name];
 }
 
 /**

@@ -129,12 +129,21 @@ export default function LoginPage() {
           </Card>
           <div className="text-center space-y-2">
             <p className="text-xs text-muted-foreground">Track your assignments and never miss a deadline</p>
-            <Link
-              href="/privacy"
-              className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
-            >
-              Privacy Policy
-            </Link>
+            <div className="flex items-center justify-center gap-3">
+              <Link
+                href="/privacy"
+                className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              <span className="text-xs text-muted-foreground">·</span>
+              <Link
+                href="/terms"
+                className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+              >
+                Terms
+              </Link>
+            </div>
           </div>
         </div>
       </div>
