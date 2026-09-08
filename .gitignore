@@ -33,7 +33,8 @@ course-data.js
 # ignored here rather than merely untracked, because the cost of one absent-minded
 # `git add -A` is publishing code that was never meant to be distributed.
 #
-# It becomes a submodule rather than a tracked directory, and `git submodule add`
-# refuses an ignored path, so the handover in docs/open-core.md passes --force.
-# The gitlink and .gitmodules are what get committed; the contents never do.
+# It is a submodule (see .gitmodules), and `git submodule add` refuses an ignored
+# path, which is why it was added with --force. Keeping the entry after the fact
+# is deliberate: the gitlink is tracked regardless, so this only ever stops the
+# submodule's *contents* being added to this repository by accident.
 /pro/
