@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { toAssignments } from "@/lib/data/rows";
 import { zonedDayKey } from "@/lib/dates";
 import { clientAddress, rateLimit, tooManyRequests } from "@/lib/security/rate-limit";
 import { createClient } from "@/lib/supabase/server";
@@ -91,7 +92,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Could not read your assignments" }, { status: 500 });
     }
 
-    assignments.push(...(page ?? []));
+    assignments.push(...toAssignments(page));
 
     if (!page || page.length < PAGE_SIZE) break;
   }

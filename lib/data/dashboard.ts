@@ -1,3 +1,4 @@
+import { toAssignments } from "@/lib/data/rows";
 import { createClient } from "@/lib/supabase/server";
 import type { Assignment } from "@/lib/types";
 
@@ -21,6 +22,6 @@ export async function fetchDashboardData(userId: string): Promise<DashboardData>
   ]);
 
   return {
-    assignments: assignmentsResult.data || [],
+    assignments: toAssignments(assignmentsResult.data),
   };
 }

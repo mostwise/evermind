@@ -22,6 +22,7 @@ function createMockAssignments(): Assignment[] {
       priority: "high",
       status: "pending",
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     },
     {
       id: "2",
@@ -33,6 +34,7 @@ function createMockAssignments(): Assignment[] {
       priority: "medium",
       status: "pending",
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     },
     {
       id: "3",
@@ -44,6 +46,7 @@ function createMockAssignments(): Assignment[] {
       priority: "high",
       status: "pending",
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     },
     {
       id: "4",
@@ -55,6 +58,7 @@ function createMockAssignments(): Assignment[] {
       priority: "low",
       status: "completed",
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     },
     {
       id: "5",
@@ -66,6 +70,7 @@ function createMockAssignments(): Assignment[] {
       priority: "medium",
       status: "pending",
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     },
     {
       id: "6",
@@ -77,6 +82,7 @@ function createMockAssignments(): Assignment[] {
       priority: "low",
       status: "pending",
       created_at: now.toISOString(),
+      updated_at: now.toISOString(),
     },
   ];
 }
