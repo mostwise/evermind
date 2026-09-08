@@ -1,5 +1,24 @@
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+// Which implementation of the optional-feature module this build gets.
+//
+// `pro/` is a private git submodule, so on a clone without access to it the
+// directory is either missing or present-but-empty — hence testing for the
+// entry file rather than the directory. The choice is made here, once, at
+// config time: there is no runtime branch and no environment variable, and a
+// build without the submodule simply does not contain the code.
+//
+const proEntry = fileURLToPath(new URL("./pro/index.ts", import.meta.url));
+const proModulePath = existsSync(proEntry) ? "./pro/index.ts" : "./pro-stub/index.ts";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    resolveAlias: {
+      "@pro": proModulePath,
+    },
+  },
   // `.next/standalone` — a self-contained server with only the dependencies it
   // actually traced — is what the Dockerfile copies into the runtime image.
   // Opt-in rather than always on, so the Vercel deployment keeps building the

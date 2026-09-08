@@ -19,7 +19,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      // The commercial module, or the stub standing in for it. TypeScript tries
+      // each entry in order and takes the first that resolves, so this is
+      // correct whether or not `pro/` is checked out. `next.config.mjs` makes
+      // the same choice for the bundler, by looking for the same file.
+      "@pro": ["./pro/index.ts", "./pro-stub/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],

@@ -28,3 +28,12 @@ next-env.d.ts
 
 # sample course data from canvas
 course-data.js
+
+# The commercial module. Proprietary, and this repository is GPL-3.0 — so it is
+# ignored here rather than merely untracked, because the cost of one absent-minded
+# `git add -A` is publishing code that was never meant to be distributed.
+#
+# It becomes a submodule rather than a tracked directory, and `git submodule add`
+# refuses an ignored path, so the handover in docs/open-core.md passes --force.
+# The gitlink and .gitmodules are what get committed; the contents never do.
+/pro/
