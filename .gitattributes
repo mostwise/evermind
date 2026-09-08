@@ -1,0 +1,26 @@
+# Line endings, pinned.
+#
+# `core.autocrlf=true` on a Windows checkout rewrites LF to CRLF in the working
+# tree. Biome formats with LF and has no CRLF-tolerant mode, so a file that git
+# converted on checkout fails `biome check` on the developer's machine while
+# passing in CI, which checks out on Linux. The symptom is a formatting error on
+# a file nobody touched.
+#
+# `eol=lf` overrides autocrlf for this repository, so the working tree matches
+# what is stored and what CI sees. Repository content is already LF throughout,
+# so no renormalisation is needed.
+* text=auto eol=lf
+
+# Binary, so git never tries to translate anything inside them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Generated. Kept out of diffs so a lockfile change does not bury a review.
+bun.lock linguist-generated=true
+lib/database.types.ts linguist-generated=true
