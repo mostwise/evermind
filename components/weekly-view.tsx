@@ -51,8 +51,13 @@ export function WeeklyView({ assignments }: WeeklyViewProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{getWeekLabel()}</CardTitle>
           <div className="flex items-center gap-1">
+            {/* Both arrows were icon-only with no accessible name, so they were
+                announced as two unlabelled buttons either side of "Today".
+                `header.tsx` already had the sr-only pattern; it was not applied
+                here. */}
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(weekOffset - 1)}>
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft aria-hidden="true" className="h-4 w-4" />
+              <span className="sr-only">Previous week</span>
             </Button>
             <Button
               variant="ghost"
@@ -64,48 +69,75 @@ export function WeeklyView({ assignments }: WeeklyViewProps) {
               Today
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setWeekOffset(weekOffset + 1)}>
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight aria-hidden="true" className="h-4 w-4" />
+              <span className="sr-only">Next week</span>
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7 gap-2">
+        {/* A list of days, each holding a list of assignments. It was nested
+            plain <div>s, which gave a screen reader no structure at all and no
+            way to tell where one day ended and the next began. */}
+        <ul aria-label={`Assignments due, ${getWeekLabel().toLowerCase()}`} className="grid grid-cols-7 gap-2">
           {weekDayKeys.map((dayKey) => {
             const dayAssignments = getAssignmentsForDay(dayKey);
             const today = dayKey === todayKey;
+            const fullDate = formatDayKey(dayKey, { weekday: "long", day: "numeric", month: "long" });
+
             return (
-              <div
+              <li
                 key={dayKey}
+                // "Today" was signalled only by a border and a tint, which is
+                // colour-only information and invisible to a screen reader.
+                aria-current={today ? "date" : undefined}
                 className={`flex flex-col rounded-lg border p-2 min-h-[100px] ${
                   today ? "border-primary bg-primary/5" : ""
                 }`}
               >
                 <div className="text-center mb-2">
-                  <p className="text-xs text-muted-foreground">{formatDayKey(dayKey, { weekday: "short" })}</p>
-                  <p className={`text-sm font-semibold ${today ? "text-primary" : ""}`}>
+                  <p aria-hidden="true" className="text-xs text-muted-foreground">
+                    {formatDayKey(dayKey, { weekday: "short" })}
+                  </p>
+                  <p aria-hidden="true" className={`text-sm font-semibold ${today ? "text-primary" : ""}`}>
                     {formatDayKey(dayKey, { day: "numeric" })}
                   </p>
+                  {/* The two lines above are abbreviated for space; this is what
+                      is actually announced. */}
+                  <span className="sr-only">
+                    {fullDate}
+                    {today ? " (today)" : ""}
+                  </span>
                 </div>
-                <div className="flex flex-col gap-1 flex-1">
+                <ul className="flex flex-col gap-1 flex-1">
                   {dayAssignments.slice(0, 2).map((assignment) => (
-                    <div key={assignment.id} className="flex items-center gap-1">
-                      <div
+                    <li key={assignment.id} className="flex items-center gap-1">
+                      {/* Priority was conveyed by the dot's hue alone — a WCAG
+                          1.4.1 failure, and nothing at all to a screen reader or
+                          to anyone who cannot separate amber from rose. */}
+                      <span
+                        aria-hidden="true"
                         className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${priorityColors[assignment.priority]}`}
                       />
-                      <span className="text-xs truncate flex-1">{assignment.title}</span>
-                    </div>
+                      <span className="sr-only">{assignment.priority} priority: </span>
+                      <span title={assignment.title} className="text-xs truncate flex-1">
+                        {assignment.title}
+                      </span>
+                    </li>
                   ))}
                   {dayAssignments.length > 2 && (
-                    <Badge variant="secondary" className="text-xs w-fit px-1 py-0">
-                      +{dayAssignments.length - 2}
-                    </Badge>
+                    <li>
+                      <Badge variant="secondary" className="text-xs w-fit px-1 py-0">
+                        <span aria-hidden="true">+{dayAssignments.length - 2}</span>
+                        <span className="sr-only">{dayAssignments.length - 2} more due this day</span>
+                      </Badge>
+                    </li>
                   )}
-                </div>
-              </div>
+                </ul>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </CardContent>
     </Card>
   );
