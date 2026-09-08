@@ -1,0 +1,4 @@
+# Supabase CLI scratch state. Machine-local; never useful to another checkout.
+.branches
+.temp
+.env
