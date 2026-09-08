@@ -23,10 +23,16 @@ import { ApiError, problem } from "./http";
  * owes the reader a comment saying why.
  */
 
-export interface UserContext {
+export interface UserContext<P = unknown> {
   readonly user: User;
   /** Anon client carrying this user's session. RLS applies to every query made with it. */
   readonly supabase: SupabaseClient<Database>;
+  /**
+   * The dynamic segments of the route, already awaited — Next hands these over
+   * as a promise, and a handler that forgets to await it gets a `Promise`
+   * where it expected a string and a 404 it cannot explain.
+   */
+  readonly params: P;
 }
 
 export interface Limit {
@@ -54,13 +60,18 @@ export interface WithUserOptions {
 const DEFAULT_PER_ADDRESS: Limit = { limit: 240, windowMs: 60 * 1000 };
 const DEFAULT_PER_USER: Limit = { limit: 120, windowMs: 60 * 1000 };
 
-export type UserHandler = (request: Request, context: UserContext) => Promise<NextResponse>;
+export type UserHandler<P = unknown> = (request: Request, context: UserContext<P>) => Promise<NextResponse>;
 
-export function withUser(options: WithUserOptions, handler: UserHandler) {
+/** What Next passes as the second argument to a dynamic route's handler. */
+export interface RouteContext<P> {
+  params: Promise<P>;
+}
+
+export function withUser<P = unknown>(options: WithUserOptions, handler: UserHandler<P>) {
   const perAddress = options.perAddress ?? DEFAULT_PER_ADDRESS;
   const perUser = options.perUser ?? DEFAULT_PER_USER;
 
-  return async function route(request: Request): Promise<NextResponse> {
+  return async function route(request: Request, routeContext?: RouteContext<P>): Promise<NextResponse> {
     // Costs nothing and needs no session, so it goes first.
     if (!isSameOriginRequest(request)) {
       return problem(403, "This request did not come from Evermind.");
@@ -88,7 +99,8 @@ export function withUser(options: WithUserOptions, handler: UserHandler) {
     }
 
     try {
-      return await handler(request, { user: data.user, supabase });
+      const params = (routeContext ? await routeContext.params : undefined) as P;
+      return await handler(request, { user: data.user, supabase, params });
     } catch (thrown) {
       if (thrown instanceof ApiError) {
         return problem(thrown.status, thrown.message);
