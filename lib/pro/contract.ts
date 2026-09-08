@@ -59,6 +59,9 @@ export interface ProCapabilities {
   readonly reminderRules: Capability;
 }
 
+/** A server route the optional module supplies the body of. */
+export type ProRequestHandler = (request: Request) => Promise<Response>;
+
 export interface ProModule {
   /**
    * False in the stub. Consumers should not normally need this — prefer checking
@@ -68,6 +71,22 @@ export interface ProModule {
   readonly present: boolean;
 
   capabilitiesFor(userId: string): Promise<ProCapabilities>;
+
+  /**
+   * Server routes this edition adds, looked up by name.
+   *
+   * Next.js requires a file under `app/` for every route, so the public
+   * repository carries thin shells that find their handler here and answer 404
+   * when there is none. The shells are the one place a reader can learn that a
+   * commercial edition exists, and they learn it from a directory name and
+   * nothing else — no request shape, no fields, no processor.
+   *
+   * The keys are plain strings rather than a named union on purpose. A union
+   * would have to spell out what each route is for, in this file, which is the
+   * one file that is supposed to describe optional capabilities without
+   * describing a business model.
+   */
+  readonly handlers?: Readonly<Record<string, ProRequestHandler | undefined>>;
 }
 
 /** Every capability off, with nothing to render in their place. */

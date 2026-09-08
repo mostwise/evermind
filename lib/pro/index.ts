@@ -1,8 +1,18 @@
 import proModule from "@pro";
 import { NO_CAPABILITIES, type ProCapabilities, type ProModule } from "./contract";
 
-export type { Capability, CapabilityCta, ProCapabilities, ProModule } from "./contract";
+export type { Capability, CapabilityCta, ProCapabilities, ProModule, ProRequestHandler } from "./contract";
 export { NO_CAPABILITIES } from "./contract";
+
+/**
+ * The handler for one optional route, or nothing.
+ *
+ * A route shell calls this and answers 404 when it comes back undefined, which
+ * is what every route below `app/api/pro/` does in a build without the module.
+ */
+export function proHandler(name: string): ((request: Request) => Promise<Response>) | undefined {
+  return proModule.handlers?.[name];
+}
 
 /**
  * Whether the optional module is compiled into this build at all.

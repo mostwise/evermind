@@ -18,5 +18,18 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  // `api/pro/webhook` is excluded deliberately, and it is the only route that is.
+  //
+  // `updateSession` calls `auth.getUser()` unconditionally, before any path
+  // branching — a Supabase round trip on every request that reaches here. That
+  // route is a machine-to-machine callback: it has no session and wants none,
+  // it is not called by a browser, and its caller abandons the request after
+  // about ten seconds. An auth lookup on every delivery buys nothing and risks
+  // the timeout.
+  //
+  // In a build without the optional module the route is a 404 either way, so
+  // this exclusion is harmless there rather than conditional.
+  //
+  // It costs the CSP header, which a machine-to-machine POST has no use for.
+  matcher: ["/((?!api/pro/webhook|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
