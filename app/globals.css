@@ -76,8 +76,11 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  /* Set by next/font in app/layout.tsx, which mangles the real family name — so
+     these have to go through the CSS variables it defines rather than naming
+     "Geist" directly, which matched nothing and left both fonts unused. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
