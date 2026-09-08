@@ -4,9 +4,7 @@ import { useCallback, useState } from "react";
 import { useSWRConfig } from "swr";
 import { useToast } from "@/hooks/use-toast";
 import { AssignmentWriteError } from "@/lib/data/assignments";
-
-/** The SWR key every assignment list is cached under. */
-const ASSIGNMENTS_KEY = "assignments";
+import { ASSIGNMENTS_KEY } from "@/lib/swr-keys";
 
 function messageFor(error: unknown): string {
   if (error instanceof AssignmentWriteError) return error.message;

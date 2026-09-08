@@ -1,28 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { createClient } from "@/lib/supabase/client";
-import type { Assignment, Class } from "@/lib/types";
-
-/** SWR cache keys. Shared with anything that mutates these tables. */
-export const CLASSES_KEY = "classes";
-const ASSIGNMENTS_KEY = "assignments";
-
-async function fetchAssignments(): Promise<Assignment[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from("assignments").select("*").order("due_date", { ascending: true });
-
-  if (error) throw error;
-  return data || [];
-}
-
-async function fetchClasses(): Promise<Class[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from("classes").select("*").order("name", { ascending: true });
-
-  if (error) throw error;
-  return data || [];
-}
+import { fetchAssignments, fetchClasses } from "@/lib/data/queries";
+import { ASSIGNMENTS_KEY, CLASSES_KEY } from "@/lib/swr-keys";
 
 /** The student's saved classes. Call `mutate(CLASSES_KEY)` after writing one. */
 export function useClasses() {
