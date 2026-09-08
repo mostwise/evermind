@@ -47,6 +47,33 @@ jobs:
       - name: Biome
         run: bun x biome ci --reporter=github
 
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache bun modules
+        uses: actions/cache@v6
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: ${{ runner.os }}-bun-
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      # The suite is pure units — dates, the data layer, the mutation hook, the
+      # security helpers, the Canvas parser. No database, no network, no
+      # environment variables, which is why this job needs none of the setup the
+      # build job has.
+      - name: Test
+        run: bun test
+
   build:
     name: Type-check and build
     runs-on: ubuntu-latest
