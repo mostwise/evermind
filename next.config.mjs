@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 // build without the submodule simply does not contain the code.
 //
 const proEntry = fileURLToPath(new URL("./pro/index.ts", import.meta.url));
-const proModulePath = existsSync(proEntry) ? "./pro/index.ts" : "./pro-stub/index.ts";
+const proPresent = existsSync(proEntry);
+const proModulePath = proPresent ? "./pro/index.ts" : "./pro-stub/index.ts";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -52,6 +53,32 @@ const nextConfig = {
     // I personally think it's dumb ngl it makes it difficult to pin
     // down an error, you can uncomment it if you want
     // removeConsole: process.env.NODE_ENV === "production",
+  },
+  // `/pro` is a shell whose body comes from the optional module (see
+  // `app/pro/page.tsx`). Without that module the page calls `notFound()`, which
+  // renders the right thing — and answers **200**, which is the wrong status.
+  //
+  // The cause is `app/loading.tsx`. A root loading file wraps every route in a
+  // Suspense boundary, so a dynamic page starts streaming its shell before the
+  // component runs; by the time `notFound()` throws, the 200 has been sent.
+  // That is true of any `notFound()` in this app, and removing the loading file
+  // to fix one route would be a poor trade.
+  //
+  // So the route is taken away instead of refused. Rewriting to a path that
+  // matches no file means Next never routes to the page at all, and answers its
+  // own 404 — real status, and `app/not-found.tsx` for the body. Unmatched
+  // routes are resolved before rendering, so no shell is streamed first.
+  //
+  // The destination is deliberately a path nothing will ever serve. If you add
+  // a catch-all under `app/pro/`, this stops working and must be revisited.
+  rewrites() {
+    if (proPresent) return [];
+
+    return {
+      beforeFiles: [{ source: "/pro", destination: "/pro/not-in-this-build" }],
+      afterFiles: [],
+      fallback: [],
+    };
   },
   // Content-Security-Policy is not here: it carries a per-request nonce, so it is set
   // by the proxy instead (see lib/security-headers.ts). These are static, and being

@@ -84,8 +84,12 @@ export type ProRequestHandler = (request: Request) => Promise<Response>;
  * a processor it does not use, would be making a claim about its own data
  * handling that is simply untrue. Those paragraphs are only correct where the
  * module is installed, so they live with the module.
+ *
+ * A section may be async, because some of them are whole pages and a page may
+ * need to look something up before it can be rendered honestly. These are
+ * server components; nothing here may be rendered from the browser.
  */
-export type ProSection = () => ReactNode;
+export type ProSection = () => ReactNode | Promise<ReactNode>;
 
 export interface ProModule {
   /**
