@@ -2,7 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [v2]
+    # A glob rather than a list, because the list was wrong within a week of
+    # being written: it said `[v2]`, work moved to `v3`, and every push to it
+    # ran nothing. The version branches are this project's long-lived lines, so
+    # matching the naming convention keeps the next one working without anyone
+    # remembering to come back here.
+    #
+    # Not every branch, though. A pull request from a branch in this repository
+    # would then run the whole suite twice — once for the push and once for the
+    # pull request — and the two runs land in different concurrency groups, so
+    # neither cancels the other.
+    branches: ["v*"]
   pull_request:
   workflow_dispatch:
 
