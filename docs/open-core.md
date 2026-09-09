@@ -13,8 +13,10 @@ better to know what it is than to guess.
 ```
 lib/pro/contract.ts     the interfaces — what an optional capability looks like
 lib/pro/index.ts        the accessor — asks the module what is available
+lib/pro/shell.ts        the body of a route whose handler lives elsewhere
 pro-stub/index.ts       the answer when there is no module: nothing is available
 app/api/pro/*           route shells with no bodies
+app/api/v1/*            one catch-all shell, likewise
 pro/                    absent here (see below)
 ```
 
@@ -62,8 +64,8 @@ tree contains a price, a plan name or a call to action.
 ## Building without it
 
 Nothing to do. `bun install && bun run build` works as-is, `bun test` passes,
-and the routes under `app/api/pro/` answer 404 because there is no handler
-behind them.
+and the routes under `app/api/pro/` and `app/api/v1/` answer 404 because there
+is no handler behind them.
 
 If you want to confirm that for yourself:
 
@@ -72,7 +74,17 @@ bun run build
 bun run start
 curl -X POST -H "sec-fetch-site: same-origin" localhost:3000/api/pro/checkout
 # {"error":"Not found"}
+curl localhost:3000/api/v1/assignments
+# {"error":"Not found"}
 ```
+
+**`/api/v1` is not a feature this build is missing.** The application never calls
+it — the browser is the client of Postgres, and always has been, so nothing in
+the planner routes through HTTP to reach your coursework. An instance you run
+yourself has the database credentials, which is a great deal more than that API
+offers. What the optional module adds is a way to hand a *restricted*, revocable
+credential to a script, which is a problem you only have once other people's
+accounts live on your server.
 
 ## Adding a module of your own
 

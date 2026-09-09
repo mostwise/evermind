@@ -346,16 +346,18 @@ but nothing else depends on it.
 
 Useful to know so you do not go looking:
 
-- **No API layer for assignments.** The browser is the client of Postgres. Adding a `/api/assignments` route
-  would mean maintaining authorisation in two places.
+- **No API layer for assignments, in this repository.** The browser is the client of Postgres, and the app
+  itself calls no route to read or write coursework. `lib/api/` holds the pieces one would be built from —
+  the `withUser` harness and the Zod schemas — and `app/api/v1/[[...path]]/` is a shell that answers 404
+  unless the optional module supplies a handler. See `docs/open-core.md`. Anyone running their own instance
+  has the database credentials, which is more than that API offers.
 - **No Server Actions.** Every mutation is a client-side Supabase call.
 - **No global state manager.** SWR's cache is the store; React context covers only theming.
-- **No form library**, despite `react-hook-form` being a dependency and `ui/form.tsx` being vendored.
-- **No test suite, no ESLint config, no CI.**
 - **No migration tooling.** Numbered SQL files, run by hand in the Supabase SQL editor, in order. Nothing
   records which have been applied.
-- **No server-side validation.** CHECK constraints and RLS are the only enforcement; everything else trusts
-  the client.
+- **No server-side validation on the path the app actually uses.** The browser writes to PostgREST directly,
+  so CHECK constraints and RLS are the only enforcement there. The schemas in `lib/api/schemas.ts` mirror
+  those constraints for callers that do go through a route, and the database's copy is the one that counts.
 
 ---
 
