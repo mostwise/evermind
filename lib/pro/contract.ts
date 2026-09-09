@@ -59,6 +59,17 @@ export interface ProCapabilities {
   readonly attachments: Capability;
   /** Reminder scheduling beyond the single daily digest everyone gets. */
   readonly reminderRules: Capability;
+  /**
+   * Reading and writing assignments and classes over HTTP from outside the app
+   * — a script, a shortcut, another program — authenticated by a token the user
+   * issues rather than by the session cookie a browser carries.
+   *
+   * Absent here does not mean "your data is closed to you". The app itself
+   * never uses this; it talks to Postgres directly, and anyone running their
+   * own instance holds the database credentials, which is strictly more than
+   * this offers.
+   */
+  readonly programmaticApi: Capability;
 }
 
 /** A server route the optional module supplies the body of. */
@@ -115,4 +126,5 @@ export const NO_CAPABILITIES: ProCapabilities = {
   canvasSync: { available: false },
   attachments: { available: false },
   reminderRules: { available: false },
+  programmaticApi: { available: false },
 };

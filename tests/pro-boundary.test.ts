@@ -3,6 +3,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { capabilitiesFrom, NO_CAPABILITIES } from "@/lib/pro";
 import type { ProCapabilities, ProModule } from "@/lib/pro/contract";
+import { proRoute } from "@/lib/pro/shell";
 import proStub from "@/pro-stub";
 
 /**
@@ -111,8 +112,23 @@ describe("the stub", () => {
     // silently returning `undefined` for it, which is falsy in the right way
     // for the wrong reason and would crash `capability.available` reads.
     expect(Object.keys(NO_CAPABILITIES).sort()).toEqual(
-      ["attachments", "calendarFeed", "canvasSync", "reminderRules"].sort(),
+      ["attachments", "calendarFeed", "canvasSync", "programmaticApi", "reminderRules"].sort(),
     );
+  });
+});
+
+describe("a route shell with no handler behind it", () => {
+  test("is a 404, not a 403 and not a 501", async () => {
+    // The status is the assertion. A build without the module does not have a
+    // disabled `/api/v1`; it does not have one. Anything other than 404 would
+    // describe a feature the caller cannot reach — and would tell a scanner
+    // which paths are worth a second look.
+    const response = await proRoute("a-handler-this-build-does-not-have")(
+      new Request("https://evermind.test/api/v1/assignments"),
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "Not found" });
   });
 });
 
@@ -140,6 +156,7 @@ describe("a misbehaving module", () => {
       canvasSync: { available: true },
       attachments: { available: true },
       reminderRules: { available: true },
+      programmaticApi: { available: true },
     };
     const working: Pick<ProModule, "capabilitiesFor"> = {
       capabilitiesFor: () => Promise.resolve(everything),
