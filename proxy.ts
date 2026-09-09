@@ -18,18 +18,22 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // `api/pro/webhook` is excluded deliberately, and it is the only route that is.
+  // Two routes are excluded deliberately, for the same reason.
   //
   // `updateSession` calls `auth.getUser()` unconditionally, before any path
-  // branching — a Supabase round trip on every request that reaches here. That
-  // route is a machine-to-machine callback: it has no session and wants none,
-  // it is not called by a browser, and its caller abandons the request after
-  // about ten seconds. An auth lookup on every delivery buys nothing and risks
-  // the timeout.
+  // branching — a Supabase round trip on every request that reaches here.
+  // Neither of these routes has a session cookie to refresh, so that round trip
+  // is pure latency on a path where latency is the whole complaint:
   //
-  // In a build without the optional module the route is a 404 either way, so
-  // this exclusion is harmless there rather than conditional.
+  //   api/pro/webhook  a machine-to-machine callback whose caller abandons the
+  //                    request after about ten seconds
+  //   api/v1           authenticated by a bearer token, called by scripts in a
+  //                    loop rather than by a browser once a page
   //
-  // It costs the CSP header, which a machine-to-machine POST has no use for.
-  matcher: ["/((?!api/pro/webhook|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  // In a build without the optional module both are 404s either way, so these
+  // exclusions are harmless there rather than conditional.
+  //
+  // It costs the CSP header, which neither a callback nor a JSON API has any
+  // use for — nothing renders their responses.
+  matcher: ["/((?!api/pro/webhook|api/v1|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
