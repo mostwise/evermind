@@ -2,6 +2,7 @@
 
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useSearchParams } from "next/navigation";
+import type { ReactNode } from "react";
 import { AppearanceTab } from "@/components/settings/appearance-tab";
 import { CanvasImport } from "@/components/settings/canvas-import";
 import { ClassesManager } from "@/components/settings/classes-manager";
@@ -26,7 +27,21 @@ function asTab(value: string | null): SettingsTab {
   return (TABS as readonly string[]).includes(value ?? "") ? (value as SettingsTab) : "general";
 }
 
-export function SettingsContent({ user }: { user: SupabaseUser }) {
+interface SettingsContentProps {
+  user: SupabaseUser;
+  /**
+   * An optional panel, already rendered by the server page and passed down as a
+   * node.
+   *
+   * It arrives this way round because deciding whether it exists is a server
+   * question — it depends on which modules are compiled into this build — and
+   * this component runs in the browser. `null` is the ordinary case and draws
+   * nothing: not a disabled card, not a placeholder. See `lib/pro/contract.ts`.
+   */
+  extraGeneralPanel?: ReactNode;
+}
+
+export function SettingsContent({ user, extraGeneralPanel }: SettingsContentProps) {
   const searchParams = useSearchParams();
 
   return (
@@ -45,6 +60,7 @@ export function SettingsContent({ user }: { user: SupabaseUser }) {
 
       <TabsContent value="general" className="mt-6 space-y-6">
         <GeneralTab user={user} />
+        {extraGeneralPanel}
       </TabsContent>
 
       <TabsContent value="assignments" className="mt-6 space-y-6">

@@ -4,6 +4,7 @@ import { Header } from "@/components/header";
 import { SettingsContent } from "@/components/settings-content";
 import { TimeZoneProvider } from "@/components/timezone-provider";
 import { Skeleton } from "@/components/ui/skeleton";
+import { proSection } from "@/lib/pro";
 import { createClient } from "@/lib/supabase/server";
 import { getTimeZone } from "@/lib/timezone-server";
 
@@ -36,6 +37,12 @@ export default async function SettingsPage() {
     redirect("/auth/login");
   }
 
+  // Supplied only by the optional module, and rendered here rather than inside
+  // `SettingsContent` because whether it exists is a fact about this build,
+  // which is a server question. Undefined in every build without that module,
+  // and the settings page is simply one card shorter.
+  const ApiTokens = proSection("settings-api-tokens");
+
   return (
     <div className="min-h-screen bg-background">
       <Header user={data.user} />
@@ -44,7 +51,7 @@ export default async function SettingsPage() {
           <h1 className="text-2xl font-bold mb-6">Settings</h1>
           <Suspense fallback={<SettingsLoading />}>
             <TimeZoneProvider initialTimeZone={await getTimeZone()}>
-              <SettingsContent user={data.user} />
+              <SettingsContent user={data.user} extraGeneralPanel={ApiTokens ? <ApiTokens /> : null} />
             </TimeZoneProvider>
           </Suspense>
         </div>
