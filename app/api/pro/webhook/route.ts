@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { proHandler } from "@/lib/pro";
+import { proRoute } from "@/lib/pro/shell";
 
 /**
  * A shell, like its sibling — see `../checkout/route.ts`.
@@ -17,12 +16,4 @@ import { proHandler } from "@/lib/pro";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request): Promise<Response> {
-  const handler = proHandler("webhook");
-
-  if (!handler) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-
-  return handler(request);
-}
+export const POST = proRoute("webhook");
