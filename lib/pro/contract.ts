@@ -70,6 +70,19 @@ export interface ProCapabilities {
    * this offers.
    */
   readonly programmaticApi: Capability;
+  /**
+   * Choosing how long completed assignments are kept before they are removed
+   * automatically — or that they are kept indefinitely.
+   *
+   * The clean-up itself is not optional and is not sold: every build does it,
+   * on the same schedule, and `lib/data/retention.ts` is the whole of it. What
+   * this capability covers is *changing* that schedule, which is why a build
+   * without the module still deletes completed work on the default timetable
+   * and simply offers nobody a way to alter it. An instance's operator can
+   * still alter it directly in the database, which is strictly more than this
+   * offers.
+   */
+  readonly retentionRules: Capability;
 }
 
 /** A server route the optional module supplies the body of. */
@@ -131,4 +144,5 @@ export const NO_CAPABILITIES: ProCapabilities = {
   attachments: { available: false },
   reminderRules: { available: false },
   programmaticApi: { available: false },
+  retentionRules: { available: false },
 };

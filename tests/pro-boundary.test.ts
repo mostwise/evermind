@@ -112,7 +112,7 @@ describe("the stub", () => {
     // silently returning `undefined` for it, which is falsy in the right way
     // for the wrong reason and would crash `capability.available` reads.
     expect(Object.keys(NO_CAPABILITIES).sort()).toEqual(
-      ["attachments", "calendarFeed", "canvasSync", "programmaticApi", "reminderRules"].sort(),
+      ["attachments", "calendarFeed", "canvasSync", "programmaticApi", "reminderRules", "retentionRules"].sort(),
     );
   });
 });
@@ -157,6 +157,7 @@ describe("a misbehaving module", () => {
       attachments: { available: true },
       reminderRules: { available: true },
       programmaticApi: { available: true },
+      retentionRules: { available: true },
     };
     const working: Pick<ProModule, "capabilitiesFor"> = {
       capabilitiesFor: () => Promise.resolve(everything),
