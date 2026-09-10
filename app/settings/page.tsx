@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Header } from "@/components/header";
+import { RetentionCard } from "@/components/settings/retention-card";
 import { SettingsContent } from "@/components/settings-content";
 import { TimeZoneProvider } from "@/components/timezone-provider";
 import { Skeleton } from "@/components/ui/skeleton";
+import { readRetentionPolicy } from "@/lib/data/retention";
 import { proSection } from "@/lib/pro";
 import { createClient } from "@/lib/supabase/server";
 import { getTimeZone } from "@/lib/timezone-server";
@@ -43,6 +45,13 @@ export default async function SettingsPage() {
   // and the settings page is simply one card shorter.
   const ApiTokens = proSection("settings-api-tokens");
 
+  // Every build removes completed assignments on some schedule, so this card is
+  // always drawn — the module supplies an editable version of it, and without
+  // the module the plain statement of the policy is what remains. Not an
+  // upgrade prompt with the controls greyed out: a build with nothing to sell
+  // has nothing to grey out.
+  const Retention = proSection("settings-retention");
+
   return (
     <div className="min-h-screen bg-background">
       <Header user={data.user} />
@@ -51,7 +60,17 @@ export default async function SettingsPage() {
           <h1 className="text-2xl font-bold mb-6">Settings</h1>
           <Suspense fallback={<SettingsLoading />}>
             <TimeZoneProvider initialTimeZone={await getTimeZone()}>
-              <SettingsContent user={data.user} extraGeneralPanel={ApiTokens ? <ApiTokens /> : null} />
+              <SettingsContent
+                user={data.user}
+                extraGeneralPanel={ApiTokens ? <ApiTokens /> : null}
+                retentionPanel={
+                  Retention ? (
+                    <Retention />
+                  ) : (
+                    <RetentionCard policy={await readRetentionPolicy(supabase, data.user.id)} />
+                  )
+                }
+              />
             </TimeZoneProvider>
           </Suspense>
         </div>

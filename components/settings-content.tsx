@@ -39,9 +39,18 @@ interface SettingsContentProps {
    * nothing: not a disabled card, not a placeholder. See `lib/pro/contract.ts`.
    */
   extraGeneralPanel?: ReactNode;
+  /**
+   * What happens to completed assignments, as a rendered card.
+   *
+   * Same reasoning as above and one difference: this one is never null. Every
+   * build removes completed work on some schedule, so every build owes the user
+   * a page that says so — what varies is only whether the card can be edited,
+   * and that is decided on the server.
+   */
+  retentionPanel: ReactNode;
 }
 
-export function SettingsContent({ user, extraGeneralPanel }: SettingsContentProps) {
+export function SettingsContent({ user, extraGeneralPanel, retentionPanel }: SettingsContentProps) {
   const searchParams = useSearchParams();
 
   return (
@@ -65,6 +74,7 @@ export function SettingsContent({ user, extraGeneralPanel }: SettingsContentProp
 
       <TabsContent value="assignments" className="mt-6 space-y-6">
         <ClassesManager userId={user.id} />
+        {retentionPanel}
         <GoogleClassroomCard />
         <CanvasImport />
       </TabsContent>
