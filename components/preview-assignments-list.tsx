@@ -24,7 +24,12 @@ export function PreviewAssignmentsList({ initialAssignments }: { initialAssignme
   };
 
   const handleStatusChange = (id: string, status: Status) => {
-    setAssignments((previous) => previous.map((a) => (a.id === id ? { ...a, status } : a)));
+    // `completed_at` alongside the status, because in the real app a trigger
+    // does it and the preview should not be the one place where completing
+    // something leaves the row half-updated.
+    const completed_at = status === "completed" ? new Date().toISOString() : null;
+
+    setAssignments((previous) => previous.map((a) => (a.id === id ? { ...a, status, completed_at } : a)));
   };
 
   const handleDelete = (id: string) => {

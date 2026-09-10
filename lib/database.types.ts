@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       assignments: {
         Row: {
+          completed_at: string | null
           created_at: string
           description: string | null
           due_date: string
@@ -23,6 +24,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date: string
@@ -35,6 +37,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date?: string
@@ -80,6 +83,35 @@ export type Database = {
             foreignKeyName: "classes_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retention_settings: {
+        Row: {
+          delete_after_days: number
+          enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          delete_after_days?: number
+          enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          delete_after_days?: number
+          enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },

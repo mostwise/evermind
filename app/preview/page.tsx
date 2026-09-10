@@ -23,6 +23,7 @@ function createMockAssignments(): Assignment[] {
       status: "pending",
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
+      completed_at: null,
     },
     {
       id: "2",
@@ -35,6 +36,7 @@ function createMockAssignments(): Assignment[] {
       status: "pending",
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
+      completed_at: null,
     },
     {
       id: "3",
@@ -47,6 +49,7 @@ function createMockAssignments(): Assignment[] {
       status: "pending",
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
+      completed_at: null,
     },
     {
       id: "4",
@@ -59,6 +62,11 @@ function createMockAssignments(): Assignment[] {
       status: "completed",
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
+      // Recent, so the preview shows a completed card rather than one the
+      // retention sweep would have taken. Nothing is deleted here — there is no
+      // account and no database — but the sample should look like what a real
+      // list holds.
+      completed_at: subDays(now, 1).toISOString(),
     },
     {
       id: "5",
@@ -71,6 +79,7 @@ function createMockAssignments(): Assignment[] {
       status: "pending",
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
+      completed_at: null,
     },
     {
       id: "6",
@@ -83,6 +92,7 @@ function createMockAssignments(): Assignment[] {
       status: "pending",
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
+      completed_at: null,
     },
   ];
 }

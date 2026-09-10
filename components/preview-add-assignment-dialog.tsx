@@ -42,6 +42,9 @@ export function PreviewAddAssignmentDialog({ onAdd }: PreviewAddAssignmentDialog
       status: "pending",
       created_at: stamp,
       updated_at: stamp,
+      // Nothing added here has been completed yet. In the real app this column
+      // is set by a database trigger rather than by any of these paths.
+      completed_at: null,
     });
 
     setOpen(false);
