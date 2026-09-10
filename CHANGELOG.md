@@ -18,6 +18,15 @@ before the new code will work. See the upgrade section of
 
 #### Added
 
+- **Completed assignments are now removed automatically**, a month after you tick them off. Only
+  completed work is ever touched — nothing pending is deleted however overdue it is, and reopening
+  an assignment starts its clock again from zero. Settings → Assignments → Finished work states the
+  policy, and General → Your Data exports everything first; deletion cannot be undone. The clean-up
+  runs when you open Evermind rather than on a schedule, so the period is a floor and not an exact
+  date. Two schema changes back it: `assignments.completed_at`, maintained by a trigger, and a
+  `retention_settings` table. Existing completed assignments have their clock started at the moment
+  the migration runs, not at their last edit, so nothing already in a database is deleted on the
+  first load after upgrading.
 - Database migrations are now managed by the Supabase CLI in `supabase/migrations/`, replacing
   hand-run numbered files. `scripts/*.sql` remain as the 2.x path and are frozen.
 - `lib/database.types.ts`, generated from the schema, so the row types can no longer drift from

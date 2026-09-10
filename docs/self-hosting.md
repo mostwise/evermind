@@ -90,6 +90,15 @@ another device or browser, and clearing site data resets them.
 **Settings → General** shows your email, display name, avatar, account creation date, last sign-in and auth
 provider. None of it is editable in the app — it comes from your OAuth provider.
 
+**Finished work does not stay forever.** Under **Settings → Assignments → Finished work**, Evermind tells you
+how long completed assignments are kept — by default a month after you tick one off. Only completed
+assignments are ever removed; nothing still pending is touched however overdue it is, and reopening one
+starts its clock again from zero. The clean-up runs when you open Evermind rather than on a schedule, so
+something may outlive its date by a day or two if you have been away. It cannot be undone, so export first.
+
+On this instance that period is fixed unless the optional module is installed. Whoever operates the instance
+can change it per account directly in the database — see §6.
+
 **Deleting your account** is in the Danger Zone: type your email address to confirm. This deletes the auth
 user, and every assignment cascades away with it. It is immediate and irreversible. Your local appearance
 settings are cleared too.
@@ -431,7 +440,33 @@ WHERE a.user_id = (SELECT id FROM auth.users WHERE email = 'someone@example.com'
 -- Rows that will never be actioned: overdue by more than 90 days
 SELECT count(*) FROM assignments
 WHERE status <> 'completed' AND due_date < now() - interval '90 days';
+
+-- What the automatic clean-up will take on this user's next visit
+SELECT count(*) FROM assignments a
+LEFT JOIN retention_settings r ON r.user_id = a.user_id
+WHERE a.user_id = '<uuid>'
+  AND a.status = 'completed'
+  AND coalesce(r.enabled, true)
+  AND a.completed_at < now() - (coalesce(r.delete_after_days, 30) || ' days')::interval;
 ```
+
+**Changing a user's retention.** `retention_settings` has a SELECT policy and nothing else, so no signed-in
+user can write it and neither can you from a session — that is the point of it. Use the SQL editor with the
+service role, or `psql`:
+
+```sql
+-- Keep everything, for one account
+INSERT INTO retention_settings (user_id, enabled) VALUES ('<uuid>', false)
+ON CONFLICT (user_id) DO UPDATE SET enabled = false, updated_at = now();
+
+-- Or a different period
+INSERT INTO retention_settings (user_id, delete_after_days) VALUES ('<uuid>', 180)
+ON CONFLICT (user_id) DO UPDATE SET delete_after_days = 180, updated_at = now();
+```
+
+To change the default for everyone rather than per account, `ALTER TABLE retention_settings ALTER COLUMN
+enabled SET DEFAULT false` is not enough — accounts with no row never consult the column default. Edit
+`DEFAULT_RETENTION` in `lib/data/retention.ts` instead, which is the single place the fallback is written.
 
 **Upgrading.** Pull, `bun install`, run any new files in `scripts/` in order, rebuild. Coming from 2.9.0 or
 earlier, `003_migrate_2_9_0_to_2_14_5.sql` is the only one you need — it covers `002` as well. There is no migration

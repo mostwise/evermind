@@ -86,6 +86,33 @@ offers. What the optional module adds is a way to hand a *restricted*, revocable
 credential to a script, which is a problem you only have once other people's
 accounts live on your server.
 
+## One capability is not shaped like the others
+
+`retentionRules` is the odd one. Every other optional capability adds something a
+build without the module simply does not do — there is no calendar feed, no
+Canvas sync, no API. Retention is different: **this build deletes completed
+assignments too**, on the same schedule, and `lib/data/retention.ts` is the whole
+of the mechanism. What the module adds is the ability to *change* the schedule.
+
+That is a deliberate choice and worth being plain about, because it is the one
+place where a clone is a little worse off than a paid account rather than merely
+smaller. The reasoning:
+
+- The clean-up is a product decision, not a paid feature. A planner that keeps
+  every finished assignment forever gets worse to use over time, and that is as
+  true on your own instance as anywhere.
+- The alternative — putting the deletion itself behind the module — would mean a
+  self-hosted install accumulating work indefinitely with no setting for it
+  either way, which is not better, only different.
+- Nothing here is locked. `retention_settings` is a table in this repository's
+  schema, and the operator of an instance holds the service-role key.
+  `docs/self-hosting.md` §6 has the two statements that change it, per account or
+  for everybody, and `DEFAULT_RETENTION` in `lib/data/retention.ts` is one line.
+
+Settings shows the policy in every build, because an account that is going to
+lose something is owed a page that says so. In a build with no module that card
+is a plain statement with no upgrade prompt attached to it, per the rule above.
+
 ## Adding a module of your own
 
 The seam is not private API. `lib/pro/contract.ts` is the whole interface: write

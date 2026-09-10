@@ -178,7 +178,7 @@ three `evermind-*` localStorage keys and redirects to login.
 
 ## 5. Data model
 
-Two tables. `scripts/001_create_assignments_table.sql`:
+Three tables. `scripts/001_create_assignments_table.sql`:
 
 ```
 assignments
@@ -192,8 +192,9 @@ assignments
   status      text   not null  check (pending | completed), default 'pending'
   created_at  timestamptz default now()
   updated_at  timestamptz default now()  -- maintained by trigger, scripts/004
+  completed_at timestamptz null          -- maintained by trigger, see §5.1
 
-indexes: user_id, due_date, status
+indexes: user_id, due_date, status, (user_id, completed_at) where status = 'completed'
 rls:     enabled; four policies, one per verb, all auth.uid() = user_id
 ```
 
@@ -225,6 +226,44 @@ Two things about `status` are worth knowing before you write code against it:
 `subject` being free text means there is no course entity: grouping, colour-coding and per-course filtering
 all have nowhere to hang. Introducing a `courses` table is the single highest-leverage schema change
 available.
+
+### 5.1 Retention — the one place the app deletes data on its own
+
+Completed assignments are removed once they are old enough. The third table holds how old:
+
+```
+retention_settings
+  user_id           uuid    pk → auth.users(id) on delete cascade
+  enabled           boolean not null default true
+  delete_after_days integer not null default 30  check (between 1 and 3650)
+  updated_at        timestamptz not null default now()
+
+rls:     enabled + forced; ONE policy, SELECT only
+grants:  select to authenticated; insert/update/delete revoked from authenticated and anon
+```
+
+No row means the default, so nothing is written on sign-up. The write side is deliberately missing:
+the browser holds a real Postgres role, so an update policy here would hand the setting to everyone,
+and changing it is what the optional module sells. `pro/routes/retention.ts` is the only code in either
+repository that can write this table, and it does so with a service-role client typed to see this one
+table and nothing else.
+
+Three things to know before working on it:
+
+- **`completed_at` belongs to the database**, the same way `updated_at` does. The `handle_completed_at`
+  trigger stamps it when a row becomes complete, clears it when the row is reopened, and leaves it alone
+  when a row that is already complete is merely edited. Three code paths can complete an assignment — the
+  card menu, the edit dialog, and `PATCH /api/v1/assignments/:id` — and none of them sends this column.
+- **The sweep runs on dashboard load**, in `fetchDashboardData`. There is no cron in this project and
+  adding one would land on every self-hoster, so the real behaviour is "removed the next time you open
+  Evermind after the period is up". The settings card says so rather than implying a precise date.
+- **Only completed rows with a known completion date are ever candidates.** Nothing pending is deleted
+  however overdue it is, and a completed row whose `completed_at` is null or unparseable is kept.
+  `lib/data/retention.ts` holds the rules and `tests/data-retention.test.ts` asserts each of these
+  refusals separately.
+
+An instance with no optional module deletes on the default schedule and offers nobody a way to change it.
+Its operator holds the service-role key and can write the table directly — see `docs/self-hosting.md`.
 
 ---
 
